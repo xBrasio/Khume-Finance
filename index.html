@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khume Technologies — Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0F1411;
+    --panel:#161C18;
+    --panel-raised:#1B221D;
+    --paper:#F5F2EA;
+    --paper-2:#ECE8DE;
+    --text:#F2F0E8;
+    --text-soft:#B9BDB7;
+    --text-faint:#858C84;
+    --brass:#C6A66B;
+    --brass-soft:#D8C08F;
+    --line:rgba(255,255,255,.08);
+    --green:#8FC39C;
+    --red:#D98B82;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ink);color:var(--text);font-family:Inter,system-ui,sans-serif}
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  .shell{min-height:100vh;display:grid;grid-template-columns:240px 1fr}
+  .sidebar{background:var(--panel);border-right:1px solid var(--line);padding:28px 18px;display:flex;flex-direction:column}
+  .brand{padding:0 12px 28px;border-bottom:1px solid var(--line)}
+  .brand small{display:block;color:var(--brass);letter-spacing:.16em;text-transform:uppercase;font-size:10px;font-weight:700;margin-bottom:7px}
+  .brand strong{font-family:Fraunces,serif;font-size:22px;font-weight:500}
+  .nav{padding-top:18px;display:grid;gap:5px}
+  .nav button{border:0;background:transparent;color:var(--text-soft);text-align:left;padding:11px 12px;border-radius:8px}
+  .nav button:hover,.nav button.active{background:var(--panel-raised);color:var(--text)}
+  .nav button.active{box-shadow:inset 2px 0 var(--brass)}
+  .side-note{margin-top:auto;padding:14px 12px;color:var(--text-faint);font-size:11px;line-height:1.5}
+  main{padding:38px clamp(22px,4vw,56px);max-width:1500px;width:100%;margin:auto}
+  .top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:30px}
+  .eyebrow{font-size:11px;color:var(--brass);letter-spacing:.15em;text-transform:uppercase;font-weight:700}
+  h1{font-family:Fraunces,serif;font-weight:500;font-size:38px;margin:7px 0 5px}
+  .sub{color:var(--text-soft);font-size:13px}
+  .pill{border:1px solid var(--line);border-radius:999px;padding:9px 13px;color:var(--text-soft);font-size:12px;background:var(--panel)}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+  .label{color:var(--text-faint);font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+  .value{font-family:Fraunces,serif;font-size:30px;margin-top:12px}
+  .positive{color:var(--green)}.negative{color:var(--red)}
+  .section{margin-top:22px}
+  .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .section-head h2{font-family:Fraunces,serif;font-weight:500;font-size:21px;margin:0}
+  .btn{background:var(--brass);color:#151711;border:0;border-radius:7px;padding:9px 13px;font-weight:700;font-size:12px}
+  .btn.secondary{background:transparent;color:var(--text-soft);border:1px solid var(--line)}
+  .two{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+  .table{width:100%;border-collapse:collapse;font-size:12px}.table th{text-align:left;color:var(--text-faint);font-weight:500;text-transform:uppercase;letter-spacing:.08em;font-size:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .table td{padding:13px 0;border-bottom:1px solid var(--line);vertical-align:middle}.table tr:last-child td{border-bottom:0}
+  .muted{color:var(--text-soft)}
+  .tag{display:inline-block;padding:4px 7px;border:1px solid var(--line);border-radius:999px;color:var(--text-soft);font-size:10px}
+  .form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.form .full{grid-column:1/-1}
+  input,select{width:100%;background:#111611;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:10px 11px;outline:none}input:focus,select:focus{border-color:var(--brass)}
+  .empty{text-align:center;color:var(--text-faint);padding:30px 10px;font-size:12px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}.modal.show{display:flex}.modal-box{width:min(520px,100%);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px}.modal-box h3{font-family:Fraunces,serif;font-size:25px;font-weight:500;margin:0 0 18px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+  .gate{position:fixed;inset:0;background:#0F1411;display:flex;align-items:center;justify-content:center;z-index:20}.gate-card{width:min(390px,calc(100% - 30px));background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:30px}.gate-card h2{font-family:Fraunces,serif;font-weight:500;font-size:30px;margin:8px 0}.gate-card p{color:var(--text-soft);font-size:13px;line-height:1.5}.gate-card input{margin:10px 0}.error{color:var(--red);font-size:11px;min-height:16px}
+  .toast{position:fixed;right:20px;bottom:20px;background:var(--paper);color:var(--ink);padding:12px 15px;border-radius:8px;font-size:12px;display:none;z-index:30}.toast.show{display:block}
+  @media(max-width:900px){.shell{grid-template-columns:1fr}.sidebar{display:none}.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+  @media(max-width:560px){main{padding:24px 15px}.grid{grid-template-columns:1fr}.form{grid-template-columns:1fr}.form .full{grid-column:auto}.top{flex-direction:column}h1{font-size:32px}.table{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="eyebrow">Khume Technologies</div>
+    <h2>Finance Ledger</h2>
+    <p>Enter the shared partner passcode to open the ledger.</p>
+    <input id="passcode" type="password" placeholder="Partner passcode" autocomplete="current-password">
+    <div class="error" id="gateErr"></div>
+    <button class="btn" style="width:100%" id="unlock">Open Ledger</button>
+  </div>
+</div>
+<div class="shell" id="app" style="display:none">
+  <aside class="sidebar">
+    <div class="brand"><small>Khume Technologies</small><strong>Finance Ledger</strong></div>
+    <div class="nav">
+      <button class="active" data-view="dashboard">Dashboard</button>
+      <button data-view="transactions">Transactions</button>
+      <button data-view="subscriptions">Subscriptions</button>
+      <button data-view="entities">Projects &amp; Entities</button>
+      <button data-view="settings">Settings</button>
+    </div>
+    <div class="side-note">Shared live ledger. Figures are based on what you record in the system.</div>
+  </aside>
+  <main>
+    <div class="top"><div><div class="eyebrow">Financial control</div><h1 id="pageTitle">Dashboard</h1><div class="sub" id="monthLabel"></div></div><div class="pill" id="syncStatus">Connecting…</div></div>
+    <div id="content"></div>
+  </main>
+</div>
+<div class="modal" id="modal"><div class="modal-box"><h3 id="modalTitle"></h3><div id="modalBody"></div><div class="actions"><button class="btn secondary" id="modalCancel">Cancel</button><button class="btn" id="modalSave">Save</button></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  "use strict";
+  const SUPABASE_URL = "https://rlrtleaubhyicvmmjpxh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_jKA6Hp3Zm3x_RRZlpxghwQ_5vIG7bOk";
+  const PARTNER_PASSCODE = "KhumeFinance2026!";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const state={entities:[],subscriptions:[],transactions:[],settings:{currency:'$'},activeEntity:'all',txType:'expense',view:'dashboard'};
+  const el=id=>document.getElementById(id);
+  const fmtMoney=n=>{const c=state.settings.currency||'$';const neg=n<0;const v=Math.abs(Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});return (neg?'−':'')+c+v};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const entityName=id=>{const e=state.entities.find(x=>x.id===id);return e?e.name:'—'};
+  const monthKey=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')};
+  const currentMonth=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+  const notify=(m)=>{el('toast').textContent=m;el('toast').classList.add('show');setTimeout(()=>el('toast').classList.remove('show'),2200)};
+  async function load(){
+    el('syncStatus').textContent='Loading…';
+    const [a,b,c,d]=await Promise.all([supabase.from('entities').select('*').order('created_at'),supabase.from('subscriptions').select('*').order('created_at'),supabase.from('transactions').select('*').order('date',{ascending:false}),supabase.from('settings').select('*').eq('id','app').maybeSingle()]);
+    const err=a.error||b.error||c.error||d.error;if(err){el('syncStatus').textContent='Database error';notify(err.message);return}
+    state.entities=a.data||[];state.subscriptions=b.data||[];state.transactions=c.data||[];state.settings=d.data||{currency:'$'};el('syncStatus').textContent='Live sync';render();
+    supabase.channel('ledger-changes').on('postgres_changes',{event:'*',schema:'public',table:'entities'},load).on('postgres_changes',{event:'*',schema:'public',table:'subscriptions'},load).on('postgres_changes',{event:'*',schema:'public',table:'transactions'},load).on('postgres_changes',{event:'*',schema:'public',table:'settings'},load).subscribe();
+  }
+  function dashboard(){
+    const mk=currentMonth();const tx=state.transactions.filter(t=>monthKey(t.date)===mk);const income=tx.filter(t=>t.type==='income').reduce((s,t)=>s+Number(t.amount),0);const expenses=tx.filter(t=>t.type==='expense').reduce((s,t)=>s+Number(t.amount),0);const recurring=state.subscriptions.filter(s=>s.status==='active').reduce((s,x)=>s+Number(x.amount)*(x.cycle==='yearly'?1/12:1),0);const net=income-expenses-recurring;
+    const rows=state.transactions.slice(0,7).map(t=>`<tr><td>${esc(t.date)}</td><td><strong>${esc(t.name)}</strong><div class="muted">${esc(entityName(t.entity_id))}</div></td><td>${esc(t.category||'')}</td><td class="${t.type==='income'?'positive':'negative'}" style="text-align:right">${t.type==='income'?'+':'−'}${fmtMoney(Math.abs(Number(t.amount)))}</td></tr>`).join('');
+    return `<div class="grid"><div class="card"><div class="label">This month income</div><div class="value positive">${fmtMoney(income)}</div></div><div class="card"><div class="label">This month expenses</div><div class="value negative">${fmtMoney(expenses)}</div></div><div class="card"><div class="label">Monthly commitments</div><div class="value">${fmtMoney(recurring)}</div></div><div class="card"><div class="label">Net cash flow</div><div class="value ${net>=0?'positive':'negative'}">${fmtMoney(net)}</div></div></div>
+    <div class="two section"><section class="card"><div class="section-head"><h2>Recent transactions</h2><button class="btn" data-action="add-tx">Add transaction</button></div>${rows?`<table class="table"><thead><tr><th>Date</th><th>Transaction</th><th>Category</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="empty">No transactions yet.</div>'}</section><section class="card"><div class="section-head"><h2>Recurring costs</h2><button class="btn secondary" data-view="subscriptions">View all</button></div>${state.subscriptions.filter(s=>s.status==='active').slice(0,6).map(s=>`<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)"><div><strong>${esc(s.name)}</strong><div class="muted">${esc(s.category||'')} · ${esc(s.cycle)}</div></div><div>${fmtMoney(Number(s.amount)*(s.cycle==='yearly'?1/12:1))}<div class="muted" style="text-align:right">monthly</div></div></div>`).join('')||'<div class="empty">No subscriptions yet.</div>'}</section></div>`;
+  }
+  function transactions(){return `<section class="card"><div class="section-head"><h2>Transactions</h2><button class="btn" data-action="add-tx">Add transaction</button></div>${state.transactions.length?`<table class="table"><thead><tr><th>Date</th><th>Name</th><th>Entity</th><th>Category</th><th>Type</th><th style="text-align:right">Amount</th><th></th></tr></thead><tbody>${state.transactions.map(t=>`<tr><td>${esc(t.date)}</td><td>${esc(t.name)}</td><td>${esc(entityName(t.entity_id))}</td><td>${esc(t.category||'')}</td><td><span class="tag">${esc(t.type)}</span></td><td class="${t.type==='income'?'positive':'negative'}" style="text-align:right">${t.type==='income'?'+':'−'}${fmtMoney(Math.abs(Number(t.amount)))}</td><td style="text-align:right"><button class="btn secondary" data-del-tx="${t.id}">Delete</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No transactions recorded.</div>'}</section>`}
+  function subscriptions(){return `<section class="card"><div class="section-head"><h2>Subscriptions</h2><button class="btn" data-action="add-sub">Add subscription</button></div>${state.subscriptions.length?`<table class="table"><thead><tr><th>Name</th><th>Category</th><th>Entity</th><th>Cycle</th><th>Status</th><th style="text-align:right">Amount</th><th></th></tr></thead><tbody>${state.subscriptions.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.category||'')}</td><td>${esc(entityName(s.entity_id))}</td><td>${esc(s.cycle)}</td><td><button class="btn secondary" data-toggle-sub="${s.id}">${esc(s.status)}</button></td><td style="text-align:right">${fmtMoney(s.amount)}</td><td><button class="btn secondary" data-del-sub="${s.id}">Delete</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No subscriptions recorded.</div>'}</section>`}
+  function entities(){return `<section class="card"><div class="section-head"><h2>Projects &amp; Entities</h2><button class="btn" data-action="add-entity">Add entity</button></div>${state.entities.length?`<table class="table"><thead><tr><th>Name</th><th>Transactions</th><th>Subscriptions</th><th></th></tr></thead><tbody>${state.entities.map(e=>`<tr><td><strong>${esc(e.name)}</strong></td><td>${state.transactions.filter(t=>t.entity_id===e.id).length}</td><td>${state.subscriptions.filter(s=>s.entity_id===e.id).length}</td><td style="text-align:right"><button class="btn secondary" data-del-entity="${e.id}">Delete</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No entities yet.</div>'}</section>`}
+  function settings(){return `<section class="card"><div class="section-head"><h2>Settings</h2></div><div class="form"><label>Currency<select id="currency"><option value="$" ${state.settings.currency==='$'?'selected':''}>USD ($)</option><option value="UGX " ${state.settings.currency==='UGX ' ?'selected':''}>UGX</option><option value="£" ${state.settings.currency==='£'?'selected':''}>GBP (£)</option><option value="€" ${state.settings.currency==='€'?'selected':''}>EUR (€)</option></select></label><div><div class="label">Database</div><p class="muted">Connected to Khume Finance Supabase project.</p></div></div></section>`}
+  function render(){el('pageTitle').textContent=state.view==='dashboard'?'Dashboard':state.view==='transactions'?'Transactions':state.view==='subscriptions'?'Subscriptions':state.view==='entities'?'Projects & Entities':'Settings';el('monthLabel').textContent=new Intl.DateTimeFormat('en',{month:'long',year:'numeric'}).format(new Date());el('content').innerHTML=state.view==='dashboard'?dashboard():state.view==='transactions'?transactions():state.view==='subscriptions'?subscriptions():state.view==='entities'?entities():settings();document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===state.view));}
+  function openModal(type){const m=el('modal');m.classList.add('show');if(type==='tx'){el('modalTitle').textContent='Add transaction';el('modalBody').innerHTML=`<div class="form"><label>Name<input id="f-name" placeholder="e.g. Supabase bill"></label><label>Date<input id="f-date" type="date" value="${new Date().toISOString().slice(0,10)}"></label><label>Amount<input id="f-amount" type="number" step="0.01" placeholder="0"></label><label>Type<select id="f-type"><option value="expense">Expense</option><option value="income">Income</option></select></label><label>Category<input id="f-category" placeholder="Software, marketing, sales…"></label><label>Entity<select id="f-entity"><option value="">None</option>${state.entities.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select></label></div>`;m.dataset.type='tx'}else if(type==='sub'){el('modalTitle').textContent='Add subscription';el('modalBody').innerHTML=`<div class="form"><label>Name<input id="f-name" placeholder="e.g. Vercel"></label><label>Amount<input id="f-amount" type="number" step="0.01" placeholder="0"></label><label>Category<input id="f-category" placeholder="Software"></label><label>Cycle<select id="f-cycle"><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></label><label class="full">Entity<select id="f-entity"><option value="">None</option>${state.entities.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('')}</select></label></div>`;m.dataset.type='sub'}else{el('modalTitle').textContent='Add project / entity';el('modalBody').innerHTML=`<label>Name<input id="f-name" placeholder="e.g. Dotti"></label>`;m.dataset.type='entity'}}
+  el('unlock').onclick=()=>{if(el('passcode').value===PARTNER_PASSCODE){sessionStorage.setItem('khume_unlocked','1');el('gate').style.display='none';el('app').style.display='grid';load()}else el('gateErr').textContent='Incorrect passcode.'};el('passcode').addEventListener('keydown',e=>{if(e.key==='Enter')el('unlock').click()});
+  if(sessionStorage.getItem('khume_unlocked')==='1'){el('gate').style.display='none';el('app').style.display='grid';load()}
+  document.addEventListener('click',async e=>{const v=e.target.closest('[data-view]');if(v){state.view=v.dataset.view;render();return}const act=e.target.closest('[data-action]');if(act){openModal(act.dataset.action==='add-tx'?'tx':act.dataset.action==='add-sub'?'sub':'entity');return}const dt=e.target.closest('[data-del-tx]');if(dt){if(confirm('Delete this transaction?')){const r=await supabase.from('transactions').delete().eq('id',dt.dataset.delTx);if(r.error)notify(r.error.message);else load()}return}const ds=e.target.closest('[data-del-sub]');if(ds){if(confirm('Delete this subscription?')){const r=await supabase.from('subscriptions').delete().eq('id',ds.dataset.delSub);if(r.error)notify(r.error.message);else load()}return}const de=e.target.closest('[data-del-entity]');if(de){if(confirm('Delete this entity?')){const r=await supabase.from('entities').delete().eq('id',de.dataset.delEntity);if(r.error)notify(r.error.message);else load()}return}const ts=e.target.closest('[data-toggle-sub]');if(ts){const s=state.subscriptions.find(x=>x.id===ts.dataset.toggleSub);if(s){const r=await supabase.from('subscriptions').update({status:s.status==='active'?'paused':'active'}).eq('id',s.id);if(r.error)notify(r.error.message);else load()}}});
+  el('modalCancel').onclick=()=>el('modal').classList.remove('show');el('modalSave').onclick=async()=>{const type=el('modal').dataset.type;let r;if(type==='tx')r=await supabase.from('transactions').insert({name:el('f-name').value.trim(),date:el('f-date').value,amount:Number(el('f-amount').value||0),type:el('f-type').value,category:el('f-category').value.trim(),entity_id:el('f-entity').value||null});else if(type==='sub')r=await supabase.from('subscriptions').insert({name:el('f-name').value.trim(),amount:Number(el('f-amount').value||0),category:el('f-category').value.trim(),cycle:el('f-cycle').value,status:'active',entity_id:el('f-entity').value||null});else r=await supabase.from('entities').insert({name:el('f-name').value.trim()});if(r.error)notify(r.error.message);else{el('modal').classList.remove('show');notify('Saved');load()}};
+  document.addEventListener('change',async e=>{if(e.target.id==='currency'){const r=await supabase.from('settings').update({currency:e.target.value}).eq('id','app');if(r.error)notify(r.error.message);else load()}});
+})();
+</script>
+</body>
+</html>

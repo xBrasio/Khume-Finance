@@ -7,8 +7,10 @@
   const email=document.getElementById("authEmail"),err=document.getElementById("authErr");
   async function check(){
     const r=await sb.auth.getSession();
-    if(r.data.session){sessionStorage.setItem("khume_unlocked","1");gate.style.display="none";app.style.display="grid";}
-    else{sessionStorage.removeItem("khume_unlocked");gate.style.display="flex";app.style.display="none";}
+    if(r.data.session){
+      if(sessionStorage.getItem("khume_unlocked")==="1"){gate.style.display="none";app.style.display="grid";}
+      else{sessionStorage.setItem("khume_unlocked","1");location.reload();}
+    }else{sessionStorage.removeItem("khume_unlocked");gate.style.display="flex";app.style.display="none";}
   }
   document.getElementById("authSend").onclick=async()=>{
     err.textContent="";
@@ -20,7 +22,7 @@
   document.getElementById("authSignOut").onclick=async()=>{await sb.auth.signOut();location.reload()};
   check();
   sb.auth.onAuthStateChange((_event,session)=>{
-    if(session){sessionStorage.setItem("khume_unlocked","1");gate.style.display="none";app.style.display="grid";}
+    if(session){sessionStorage.setItem("khume_unlocked","1");}
     else{sessionStorage.removeItem("khume_unlocked");gate.style.display="flex";app.style.display="none";}
   });
 })();

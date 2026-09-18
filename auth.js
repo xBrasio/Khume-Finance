@@ -15,7 +15,7 @@
   document.getElementById("authSend").onclick=async()=>{
     err.textContent="";
     if(!email.value.trim()){err.textContent="Enter your company email.";return}
-    const r=await sb.auth.signInWithOtp({email:email.value.trim(),options:{emailRedirectTo:window.location.origin}});
+    const r=await sb.auth.signInWithOtp({email:email.value.trim(),options:{emailRedirectTo:window.location.origin,shouldCreateUser:false}});
     if(r.error){err.textContent=r.error.message;return}
     err.textContent="Sign-in link sent. Check your email.";
   };

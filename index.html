@@ -139,6 +139,5 @@
   el('modalCancel').onclick=()=>el('modal').classList.remove('show');el('modalSave').onclick=async()=>{const type=el('modal').dataset.type;let r;if(type==='tx')r=await supabase.from('transactions').insert({name:el('f-name').value.trim(),date:el('f-date').value,amount:Number(el('f-amount').value||0),type:el('f-type').value,category:el('f-category').value.trim(),entity_id:el('f-entity').value||null});else if(type==='sub')r=await supabase.from('subscriptions').insert({name:el('f-name').value.trim(),amount:Number(el('f-amount').value||0),category:el('f-category').value.trim(),cycle:el('f-cycle').value,status:'active',entity_id:el('f-entity').value||null});else r=await supabase.from('entities').insert({name:el('f-name').value.trim()});if(r.error)notify(r.error.message);else{el('modal').classList.remove('show');notify('Saved');load()}};
   document.addEventListener('change',async e=>{if(e.target.id==='currency'){const r=await supabase.from('settings').update({currency:e.target.value}).eq('id','app');if(r.error)notify(r.error.message);else load()}});
 })();
-</script>
-<script src="./auth.js"></script></body>
+</script></body>
 </html>

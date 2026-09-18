@@ -140,5 +140,5 @@
   document.addEventListener('change',async e=>{if(e.target.id==='currency'){const r=await supabase.from('settings').update({currency:e.target.value}).eq('id','app');if(r.error)notify(r.error.message);else load()}});
 })();
 </script>
-</body>
+<script src="./auth.js"></script></body>
 </html>
